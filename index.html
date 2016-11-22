@@ -144,8 +144,8 @@ div#chartContainer{
 </style>
 
 
-<script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
-<script src="http://dimplejs.org/dist/dimple.v2.2.0.min.js"></script>
+<script src="../../js/d3.v3.min.js" charset="utf-8"></script>
+<script src="../../js/dimple.min.js"></script>
 <script src="//d3js.org/topojson.v1.min.js"></script>
 <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
@@ -228,271 +228,11 @@ function draw_USMap() {
     d3.csv("Visualisation_Airport_Year_2008.csv",draw);
     
     function draw(data) {
-        setTimeout(10);
+        // setTimeout(10);
         //===============================================================
         //===============================================================
 
-        /*
-
-        //Reading in Flight Data
-        var Max_DepFlights = 0;
-        var radius;
-        var nested;
-
-        //This function combines the Data of 2 csv file (airportdata and arrivals_year.csv)
-        //===============================================================
-        //===============================================================
-        function add_geodata(leaves){
-          Geo_Coord = [];
-          //debugger;
-          found = false;
-          count = 0
-          while (found == false && count < airport_data.length) {
-            if (airport_data[count]['iata'] == leaves[0]['Airport']) {
-              Geo_Coord.push(airport_data[count]['lat'])
-              Geo_Coord.push(airport_data[count]['long'])
-              found = true;
-            }
-              count ++;  
-          }
-          //debugger;
-          return {
-                  'lat' : Geo_Coord[0],
-                  'long' : Geo_Coord[1],
-                  'Airport': airport_data[count-1]['airport'],
-                  'Departures' : leaves[0]['DepFlights'],
-                  'Arrivals' : leaves[0]['Arrivals'],
-                  'Mean_Departure_Delay_per_Flight' : leaves[0]['DepDelay_Mean'],
-                  'Mean_Arrival_Delay_per_Flight': leaves[0]['ArrivalsDelay_Mean'],
-                  'Departures_and_Arrivals': parseFloat(leaves[0]['DepFlights']) + parseFloat(leaves[0]['Arrivals'])
-                  }
-
-        };
-        //===============================================================
-        //===============================================================
-
-
-         d3.csv("Arrivals_year.csv", function(data){
-          console.log(data);
-
-          var nested = d3.nest()
-                    .key(function(d){
-                      return d['Airport'];
-                    })
-                    .rollup(add_geodata)
-                    .entries(data);
-
-          //Append all necessary tags
-
-          d3.select('body')
-           .append('div')
-           .attr("class",'Explore');
-
-          d3.select('body')
-           .append('div')
-           .attr("class",'barchart');
-
-
-
-          var buttons = d3.select("body")
-                        .append("div")
-                        .attr("class", "Selections")
-                        .selectAll("div")
-                        .data(methods)
-                        .enter()
-                        .append("div")
-                        .text(function(d) {
-                              return d.replace(/_/gi,' ');
-                                });
-                   
-
-
-          buttons.on("click", function(d) {
-
-            d3.select(".barchart")
-              .text("")
-              .selectAll('div')
-              .data([])
-              .exit()
-              .remove();
-
-            d3.select(".Explore")
-              .selectAll('div')
-              .data([])
-              .exit()
-              .remove();
-              //debugger;
-
-           d3.select(".Selections")
-             .selectAll('div')
-             .transition()
-             .duration(500)
-             .style("background","lightblue")
-             .style("color","black");
-
-                            
-             d3.select(this)
-               .transition()
-               .duration(500)
-               .style("background", "lightgreen")
-               .style("color", "black");
-                update(d);
-               });
-          
-
-
-        //=============================update(selection)======================================
-        //====================================================================================
-          function update(Selection){
-          
-          Explore = ['Mean_Departure_Delay_per_Flight'];
-         
-           nested = d3.nest()
-                    .key(function(d){
-                      return d['Airport'];
-                    })
-                    .rollup(add_geodata)
-                    .entries(data);
-
-           console.log(Selection);
-           Flag_Delay = false;
-           Flag_Airport = false;
-           if (Selection == "Busiest_Airports"){
-
-                Selection = 'Departures_and_Arrivals'
-                Flag_Airport = true;
-        }
-        else if (Selection == 'Airports_with_Highest_Departure_Delay'){
-               Selection = 'Mean_Departure_Delay_per_Flight'
-               Flag_Delay = true;
-          
-
-        }
-
-
-
-           nested = nested.sort(function(a,b){
-                      return b.values[Selection] - a.values[Selection];
-                      });
-
-         
-
-
-
-
-          console.log(nested)
-          Max= d3.max(nested, function(d){
-                              return parseFloat(d.values[Selection])
-                              })
-         
-          
-         //Scale for appended circles
-          radius = d3.scale.sqrt()
-                           .domain([0, Max])
-                           .range([0, 30]);
-
-         
-
-         //tooltip for circle selection
-          var tooltip = d3.select("body")
-          .append("div")
-          .attr("class", "tt")
-          .style("position", "absolute")
-          .style("z-index", "10")
-          .style("visibility", "hidden")
-          
-         d3.select('h2')
-           .text(("US Flight Information 2008 \n")  + Selection.replace(/_/gi,' ') + ' ' + si[Selection])
-
-          if ( Flag_Delay == true || Flag_Airport == true){
-            nested = nested.slice(0,10);
-
-            //Add Explore Buttons only for Selections 10 Busiest Airports
-
-            d3.select(".barchart")
-              .selectAll('div')
-              .data([])
-              .exit()
-              .remove();
-
-                d3.select('.Explore')
-                          .selectAll("div")
-                          .data(Explore)
-                          .enter()
-                          .append("div")
-                          .text(function(d){
-                                  return d.replace(/_/gi,' ');
-                          })
-                  .on("click",function(d){
-
-                  d3.select(".Explore")
-                  .selectAll('div')
-                 .transition()
-                 .duration(500)
-                 .style("background", "lightblue")
-                 .style("color","black");
-
-              d3.select(".barchart")
-              .text("")
-              .selectAll('div')
-              .data([])
-              .exit()
-              .remove();
-
-              d3.select(this)
-               .transition()
-               .duration(500)
-               .style("background", "lightgreen")
-               .style("color", "black")
-                update_barchart(d);
-               });
-
-            }
-        //=====================================================    
-            function update_barchart(Explore){
-
-            //nested = nested.sort(function(a,b){
-                   // return b.values['Mean_Departure_Delay_per_Flight'] - a.values['Mean_Departure_Delay_per_Flight']
-                   // });
-                 Max= d3.max(nested, function(d){
-                          return parseFloat(d.values['Mean_Departure_Delay_per_Flight'])
-                           })
-                //Scale for appended circles
-             if (Flag_Airport == true ){
-             bar_scale= d3.scale.linear()
-                           .domain([0, Max])
-                           .range([10, 100]);
-
-              }
-              else{
-                bar_scale= d3.scale.linear()
-                           .domain([0, Max])
-                           .range([10, 300]);
-              }
-
-                d3.select('.barchart')
-                  .text(function(){
-                    return Explore.replace(/_/gi,' ') + ' in Minutes'
-                    })
-                  .selectAll('div')
-                  .data(nested)
-                  .enter()
-                  .append('div')
-                  .style('width', function(d){
-                    // debugger;
-                      delay = parseFloat(d.values[Explore]);
-                      if (delay < 1.0){
-                        return 0 + 'px';
-                      } 
-                      else {
-                        return bar_scale(delay) + 'px'; 
-                      } 
-                      
-                  })
-                  .text(function(d){return (d['key'] +' ' + (parseFloat(d.values[Explore])).toFixed(0))})
-                }
-        //===================================================
-        */
+        
           // Update function for Selection Logic
         // ============================================================
         function update_airports(d){
@@ -726,9 +466,9 @@ function draw_USMap() {
     // width = 500;
     // height = 500;
 
-    // d3.select('body')
-    //   .append('div')
-    //   .attr('id','chartContainer')
+    d3.select('body')
+      .append('div')
+      .attr('id','chartContainer')
 
 
 
@@ -765,39 +505,39 @@ function draw_USMap() {
         data[i]['SecurityDelay']=parseFloat( data[i]['SecurityDelay'])
       }
 
-     //  debugger;
-     //  var svg = dimple.newSvg("#chartContainer", 800, 400);
-     //  var chart_1 = new dimple.chart(svg, data);
-     //  var x = chart_1.addTimeAxis("x", "Month",'%m','%m');
-     //  x.dateParseFormat = "%m";
-     //  x.addOrderRule("Month");
+       debugger;
+       var svg = dimple.newSvg("#chartContainer", 800, 400);
+       var chart_1 = new dimple.chart(svg, data);
+       var x = chart_1.addTimeAxis("x", "Month",'%m','%m');
+       x.dateParseFormat = "%m";
+       x.addOrderRule("Month");
  
 
-     //  var y1 = chart_1.addMeasureAxis("y", "CarrierDelay");
-     //  var y2 = chart_1.addMeasureAxis("y", "WeatherDelay");
-     //  var y3 = chart_1.addMeasureAxis("y", "NASDelay");
-     //  var y4 = chart_1.addMeasureAxis("y", "LateAircraftDelay");
+       var y1 = chart_1.addMeasureAxis("y", "CarrierDelay");
+       var y2 = chart_1.addMeasureAxis("y", "WeatherDelay");
+       var y3 = chart_1.addMeasureAxis("y", "NASDelay");
+       var y4 = chart_1.addMeasureAxis("y", "LateAircraftDelay");
 
-     //  //y2.hidden=true
-     //  y3.hidden=true
-     //  y4.hidden=true
+       //y2.hidden=true
+       y3.hidden=true
+       y4.hidden=true
 
 
-     //    // myChart.setBounds(60, 30, 505, 305);
-     //  chart_1.setBounds(100,20,600,330);
-     //  // var s = myChart.addSeries("Channel", dimple.plot.area);
-     //  // myChart.addLegend(60, 10, 500, 20, "right");
-     //  line_1 = chart_1.addSeries('L1',dimple.plot.line,[x,y1]);
+         // myChart.setBounds(60, 30, 505, 305);
+       chart_1.setBounds(100,20,600,330);
+       // var s = myChart.addSeries("Channel", dimple.plot.area);
+       // myChart.addLegend(60, 10, 500, 20, "right");
+       line_1 = chart_1.addSeries('L1',dimple.plot.line,[x,y1]);
 
-     //  //line_2 = chart_1.addSeries(null, dimple.plot.line,[x.y2]);
+       line_2 = chart_1.addSeries("L2", dimple.plot.line,[x,y2]);
 
-     //  //line_2.lineMarkers = true;
-     //  // var line_3 = chart_1.addSeries(null, dimple.plot.line, [x,y3]);
-     //  // var line_4 = chart_1.addSeries(null, dimple.plot.line, [x,y3]);
+       line_2.lineMarkers = true;
+        var line_3 = chart_1.addSeries(null, dimple.plot.line, [x,y3]);
+        var line_4 = chart_1.addSeries(null, dimple.plot.line, [x,y3]);
       
 
-     // //chart_1.assignColor(L1, "red",0.6, L2, 'lightblue')
-     // chart_1.draw();
+      chart_1.assignColor("L1", "red",0.6,"L2","lightblue","0.6");
+      chart_1.draw();
      
 
       // =============END Prepare barchart DIMPLE.js==============================================
@@ -829,7 +569,7 @@ function draw_USMap() {
 
 
         data.forEach(function(d){
-          d.Month= parseDate(d.Month)
+          d.Month= parseDate(d.Month);
         })
 
          x.domain(d3.extent(data, function(d) { return d.Month; }));
@@ -874,12 +614,22 @@ function draw_USMap() {
 
 console.log("=========================Starting Visualisation ==============================================");
 draw_USMap();
-//d3.csv("Visualisation_Airport_Year_2008.csv",draw);
+// d3.csv("Visualisation_Airport_Year_2008.csv",draw);
   </script>
   <div align="center" class="fixed">   
           <a style ='color: black' href="https://goo.gl/forms/62WtocUq4khxeR8R2" class="btn btn-info btn-lg">
             <span style = 'color : white' class="glyphicon glyphicon-comment"></span> Feedback
           </a> 
+  </div>
+  
+  <div id="chartContainer">
+    
+    
+  </div>
+  
+  <div id="chartContainer1">
+    
+    
   </div>
 
 </body>
